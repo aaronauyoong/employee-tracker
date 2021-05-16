@@ -20,3 +20,31 @@ connection.connect((err) => {
 });
 
 // Inquirer Questions
+
+// Functions for search/view
+function runSearch();
+
+function employeeSearch();
+
+function budgetView();
+
+function viewEmployeesByManager();
+
+// Functions for adding
+function addEmployee();
+
+function departmentSearch();
+
+function addDepartment();
+
+// Functions for updating
+function updateEmployee();
+
+function updateEmployeeManager();
+
+// Function for deleting
+function deleteDepartment();
+
+function deleteRoles();
+
+function deleteEmployee();

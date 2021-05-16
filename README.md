@@ -83,6 +83,9 @@ For contributions, you may follow the industry standard: [Contributor Covenant](
 License badges used in this project were retrieved from GitHub user's `lukas-h` license-badge markdown file: [Markdown License badges](https://gist.github.com/lukas-h/2a5d00690736b4c3a7ba).
 
 Basic NPM Packages were used: [NPM Packages](https://www.npmjs.com/).
+Inquirer NPM Package was used: [Inquirer NPM Package](https://www.npmjs.com/package/inquirer/v/0.2.3).
+MySQL NPM Package was used: [MySQL](https://www.npmjs.com/package/mysql).
+Console.table NPM Package was used: [console.table](https://www.npmjs.com/package/console.table).
 
 
 ## Tests
