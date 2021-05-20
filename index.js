@@ -7,7 +7,6 @@ const cTable = require("console.table");
 const connection = mysql.createConnection({
 	host: "localhost",
 	port: 3306,
-
 	// Your username
 	user: "root",
 	// Be sure to update with your own MySQL password!
@@ -33,7 +32,6 @@ const employeeSearch = () => {
 		.then((answer) => {
 			const query =
 				"SELECT employee.id AS ID, first_name AS 'First Name', last_name AS 'Last Name', roles.title AS 'Role', department.name AS 'Department', employee.manager_id AS 'Manager ID' FROM employee LEFT JOIN (roles LEFT JOIN department ON department.id = roles.department_id) ON employee.role_id = roles.id WHERE employee.first_name = ?";
-			console.log(answer.employeeSearch);
 			connection.query(query, [answer.employeeSearch], (err, res) => {
 				if (err) throw err;
 				console.table(res);
@@ -66,8 +64,7 @@ const departmentSearch = () => {
 				},
 			])
 			.then((answer) => {
-				const query =
-`SELECT employee.id AS ID, first_name AS 'First Name', last_name AS 'Last Name', department.name AS 'Department', roles.title AS 'Role' 
+				const query = `SELECT employee.id AS ID, first_name AS 'First Name', last_name AS 'Last Name', department.name AS 'Department', roles.title AS 'Role' 
 FROM employee 
 LEFT JOIN roles ON employee.role_id = roles.id
 LEFT JOIN department ON department.id = roles.department_id
@@ -79,24 +76,6 @@ WHERE department.name = "${answer.department.name}"`;
 				});
 			});
 	});
-	// inquirer
-	// 	.prompt([
-	// 		{
-	// 			name: "department",
-	// 			type: "input",
-	// 			message: "Please enter a department name to search for its details.",
-	// 		},
-	// 	])
-	// 	.then((answer) => {
-	// 		const query =
-	// 			"SELECT employee.id AS ID, first_name AS 'First Name', last_name AS 'Last Name', department.name AS 'Department', roles.title AS 'Role' FROM employee LEFT JOIN (roles LEFT JOIN department ON department.id = roles.department_id) ON employee.role_id = roles.id WHERE department.name = ?";
-	// 		console.log(answer.department);
-	// 		connection.query(query, [answer.department], (err, res) => {
-	// 			if (err) throw err;
-	// 			console.table(res);
-	// 			runSearch();
-	// 		});
-	// 	});
 };
 
 const viewAllEmployees = () => {
@@ -110,13 +89,13 @@ const viewAllEmployees = () => {
 };
 
 const viewAllDepartments = () => {
-    const query = "SELECT id AS ID, name AS 'Department Name' FROM department";
-    connection.query(query, (err, res) => {
+	const query = "SELECT id AS ID, name AS 'Department Name' FROM department";
+	connection.query(query, (err, res) => {
 		if (err) throw err;
 		console.table(res);
 		runSearch();
 	});
-}
+};
 
 const viewEmployeesByDepartment = () => {
 	connection.query(
@@ -131,7 +110,6 @@ const viewEmployeesByDepartment = () => {
 					choices: departments,
 				})
 				.then((answers) => {
-					console.log(answers);
 					const deptList = JSON.stringify(answers.department);
 					const query = `
 SELECT employee.first_name AS 'First Name', employee.last_name AS 'Last Name', roles.title AS 'Role', department.name AS 'Department'
@@ -166,9 +144,6 @@ const viewEmployeesByManager = () => {
 					};
 				}
 			);
-
-			console.log(managerChoices);
-
 			if (err) throw err;
 			inquirer
 				.prompt({
@@ -179,7 +154,6 @@ const viewEmployeesByManager = () => {
 					choices: managerChoices,
 				})
 				.then((answers) => {
-					console.log(answers);
 					const managerList = answers.manager.id;
 					const query = `
 SELECT first_name as 'First Name', last_name AS 'Last Name', roles.title AS 'Role', department.name AS 'Department'
@@ -292,7 +266,7 @@ const addEmployee = () => {
 							],
 							(err) => {
 								if (err) throw err;
-								console.log("Successfully added new employee!");
+								console.log("// ----- Successfully added new employee! -----  //");
 								runSearch();
 							}
 						);
@@ -317,7 +291,7 @@ const addDepartment = () => {
 
 			connection.query(query, [answer.departmentName], (err) => {
 				if (err) throw err;
-				console.log("Successfully added new department!");
+				console.log("// ----- Successfully added new department! -----  //");
 				runSearch();
 			});
 		});
@@ -365,7 +339,7 @@ const addRole = () => {
 						[answer.title, answer.salary, answer.department.id],
 						(err) => {
 							if (err) throw err;
-							console.log("Successfully added new employee role!");
+							console.log("// ----- Successfully added a new employee role! -----  //");
 							runSearch();
 						}
 					);
@@ -374,16 +348,40 @@ const addRole = () => {
 	});
 };
 
-//Updating Employee Role (MinReq)
 const updateEmployeeRole = () => {
-	const query = "";
-	query += "";
-	connection.query(query, (err, res) => {
-		if (err) throw err;
-		console.table(res);
-		console.log("Successfully updated employee!");
-		runSearch();
-	});
+
+    connection.query("SELECT * FROM employee", (err, employee) => {
+        if(err) throw err;
+        console.log("THIS IS A CONSOLE LOG FOR EMPLOYEE*****", employee)
+
+        connection.query("SELECT * FROM roles", (err, roles) => {
+            console.log("THIS IS A CONSOLE LOG FOR ROLES", roles)
+            if(err) throw err;
+
+            inquirer.prompt([
+                {
+                    name: "employee",
+                    type: "list",
+                    message: "Please select the employee whose role you would like to update: ",
+                    choices: employee.map(emp => ({ name: emp.first_name + " " + emp.last_name, value: emp.id}))
+                },
+                {
+                    name:"role",
+                    type: "list",
+                    message: "Please select a new role for the chosen employee: ",
+                    choices: roles.map(role => ({ name: role.title, value: role.id}))
+                }
+            ]).then((answer) => {
+                connection.query("UPDATE employee SET role_id = ? WHERE id = ?", [answer.role, answer.employee], (err) => {
+                    if (err) throw err;
+                    console.log("// ----- Successfully updated employee role! -----  //");
+                    runSearch();
+                })
+
+            })
+
+    })
+    })
 };
 
 // Updating Employee Manager (Extra)
@@ -412,7 +410,7 @@ const updateEmployeeManager = () => {
 	connection.query(query, (err, res) => {
 		if (err) throw err;
 		console.table(res);
-		console.log("Successfully updated employee manager!");
+		console.log("// ----- Successfully updated employee manager! ----- //");
 		runSearch();
 	});
 };
@@ -448,7 +446,7 @@ const removeEmployee = () => {
 						`DELETE FROM employee WHERE id = ${answer.employee.id}`,
 						(err) => {
 							if (err) throw err;
-							console.log("Successfully removed employee!");
+							console.log("// ----- Successfully removed employee! -----  //");
 							runSearch();
 						}
 					);
@@ -487,7 +485,7 @@ const removeRole = () => {
 					`DELETE FROM roles WHERE  id = ${answer.role.id}`,
 					(err) => {
 						if (err) throw err;
-						console.log("Successfully removed employee role!");
+						console.log("// ----- Successfully removed employee role! -----  //");
 						runSearch();
 					}
 				);
@@ -495,7 +493,6 @@ const removeRole = () => {
 	});
 };
 
-// Remove department (Extra)
 const removeDepartment = () => {
 	connection.query("SELECT * FROM department", (err, department) => {
 		if (err) throw err;
@@ -524,7 +521,7 @@ const removeDepartment = () => {
 					`DELETE FROM department WHERE id = ${answer.department.id}`,
 					(err) => {
 						if (err) throw err;
-						console.log("Successfully removed department!");
+						console.log("// ----- Successfully removed department! -----  //");
 						runSearch();
 					}
 				);
@@ -532,7 +529,6 @@ const removeDepartment = () => {
 	});
 };
 
-// Exit app
 const exitApp = () => connection.end();
 
 const operations = {
@@ -542,7 +538,7 @@ const operations = {
 
 	// View Data
 	"View All Employees": viewAllEmployees,
-    "View All Departments": viewAllDepartments,
+	"View All Departments": viewAllDepartments,
 	"View All Employees By Department": viewEmployeesByDepartment,
 	"View All Employees By Manager": viewEmployeesByManager,
 	"View Total Utilized Budget Of A Department": departmentBudgetView,
@@ -553,7 +549,7 @@ const operations = {
 	"Add Role": addRole,
 
 	// // Update Data
-	// "Update Employee Role": updateEmployeeRole,
+	"Update Employee Role": updateEmployeeRole,
 	// "Update Employee Manager": updateEmployeeManager,
 
 	// // Delete Data
