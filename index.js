@@ -43,24 +43,60 @@ const employeeSearch = () => {
 };
 
 const departmentSearch = () => {
-	inquirer
-		.prompt([
-			{
-				name: "department",
-				type: "input",
-				message: "Please enter a department name to search for its details.",
-			},
-		])
-		.then((answer) => {
-			const query =
-				"SELECT employee.id AS ID, first_name AS 'First Name', last_name AS 'Last Name', department.name AS 'Department', roles.title AS 'Role' FROM employee LEFT JOIN (roles LEFT JOIN department ON department.id = roles.department_id) ON employee.role_id = roles.id WHERE department.name = ?";
-			console.log(answer.department);
-			connection.query(query, [answer.department], (err, res) => {
-				if (err) throw err;
-				console.table(res);
-				runSearch();
-			});
+	connection.query("SELECT name FROM department", (err, department) => {
+		if (err) throw err;
+
+		const departmentList = department.map(({ id, name }) => {
+			return {
+				name: name,
+				value: {
+					id,
+					name,
+				},
+			};
 		});
+
+		inquirer
+			.prompt([
+				{
+					name: "department",
+					type: "list",
+					message: "Which department would you like to search for?",
+					choices: departmentList,
+				},
+			])
+			.then((answer) => {
+				const query =
+`SELECT employee.id AS ID, first_name AS 'First Name', last_name AS 'Last Name', department.name AS 'Department', roles.title AS 'Role' 
+FROM employee 
+LEFT JOIN roles ON employee.role_id = roles.id
+LEFT JOIN department ON department.id = roles.department_id
+WHERE department.name = "${answer.department.name}"`;
+				connection.query(query, (err, res) => {
+					if (err) throw err;
+					console.table(res);
+					runSearch();
+				});
+			});
+	});
+	// inquirer
+	// 	.prompt([
+	// 		{
+	// 			name: "department",
+	// 			type: "input",
+	// 			message: "Please enter a department name to search for its details.",
+	// 		},
+	// 	])
+	// 	.then((answer) => {
+	// 		const query =
+	// 			"SELECT employee.id AS ID, first_name AS 'First Name', last_name AS 'Last Name', department.name AS 'Department', roles.title AS 'Role' FROM employee LEFT JOIN (roles LEFT JOIN department ON department.id = roles.department_id) ON employee.role_id = roles.id WHERE department.name = ?";
+	// 		console.log(answer.department);
+	// 		connection.query(query, [answer.department], (err, res) => {
+	// 			if (err) throw err;
+	// 			console.table(res);
+	// 			runSearch();
+	// 		});
+	// 	});
 };
 
 const viewAllEmployees = () => {
@@ -72,6 +108,15 @@ const viewAllEmployees = () => {
 		runSearch();
 	});
 };
+
+const viewAllDepartments = () => {
+    const query = "SELECT id AS ID, name AS 'Department Name' FROM department";
+    connection.query(query, (err, res) => {
+		if (err) throw err;
+		console.table(res);
+		runSearch();
+	});
+}
 
 const viewEmployeesByDepartment = () => {
 	connection.query(
@@ -187,7 +232,9 @@ const departmentBudgetView = () => {
 const addEmployee = () => {
 	connection.query("SELECT * FROM roles", (err, roles) => {
 		if (err) throw err;
-		connection.query("SELECT * FROM employee WHERE manager_id IS null", (err, manager) => {
+		connection.query(
+			"SELECT * FROM employee WHERE manager_id IS null",
+			(err, manager) => {
 				if (err) throw err;
 				inquirer
 					.prompt([
@@ -255,16 +302,10 @@ const addEmployee = () => {
 	});
 };
 
-// Adding new Department (MinReq)
 const addDepartment = () => {
 	connection.query("SELECT * FROM department");
 	inquirer
 		.prompt([
-			{
-				name: "departmentID",
-				type: "input",
-				message: "Please enter the new department ID.",
-			},
 			{
 				name: "departmentName",
 				type: "input",
@@ -272,39 +313,23 @@ const addDepartment = () => {
 			},
 		])
 		.then((answer) => {
-			const query = "INSERT INTO department (id, name) VALUES (?,?)";
+			const query = "INSERT INTO department (name) VALUES (?)";
 
-			connection.query(
-				query,
-				[answer.departmentID, answer.departmentName],
-				(err) => {
-					if (err) throw err;
-					console.log("Successfully added new department!");
-					runSearch();
-				}
-			);
+			connection.query(query, [answer.departmentName], (err) => {
+				if (err) throw err;
+				console.log("Successfully added new department!");
+				runSearch();
+			});
 		});
 };
 
-// Adding new role (MinReq)
 const addRole = () => {
 	connection.query("SELECT * FROM department", (err, department) => {
-        
-        if (err) throw err;
-        console.log(department);
-		
+		if (err) throw err;
 		connection.query("SELECT * FROM roles", (err, roles) => {
-
-            console.log(roles);
 			if (err) throw err;
-            
 			inquirer
 				.prompt([
-					{
-						name: "id",
-						type: "input",
-						message: "Please enter an ID for the new employee role.",
-					},
 					{
 						name: "title",
 						type: "input",
@@ -333,10 +358,12 @@ const addRole = () => {
 					},
 				])
 				.then((answer) => {
-                    console.log("THIS IS CLG FOR ANSWER", answer)
 					const query =
-						"INSERT INTO roles (id, title, salary, department_id) VALUES (?,?,?,?)";
-					connection.query(query,[answer.id, answer.title, answer.salary, answer.department.id], (err) => {
+						"INSERT INTO roles (title, salary, department_id) VALUES (?,?,?)";
+					connection.query(
+						query,
+						[answer.title, answer.salary, answer.department.id],
+						(err) => {
 							if (err) throw err;
 							console.log("Successfully added new employee role!");
 							runSearch();
@@ -345,7 +372,6 @@ const addRole = () => {
 				});
 		});
 	});
-	
 };
 
 //Updating Employee Role (MinReq)
@@ -391,7 +417,6 @@ const updateEmployeeManager = () => {
 	});
 };
 
-// Remove employee (Extra)
 const removeEmployee = () => {
 	connection.query(
 		"SELECT first_name, last_name, id FROM employee",
@@ -432,25 +457,78 @@ const removeEmployee = () => {
 	);
 };
 
-// Remove role (Extra)
 const removeRole = () => {
-	const query = "";
-	query += "";
-	connection.query(query, (err, res) => {
+	connection.query("SELECT * FROM roles", (err, roles) => {
 		if (err) throw err;
-		console.log("Successfully removed employee role!");
-		runSearch();
+
+		const rolesList = roles.map(({ id, title, salary, department_id }) => {
+			return {
+				name: title,
+				value: {
+					id,
+					title,
+					salary,
+					department_id,
+				},
+			};
+		});
+
+		inquirer
+			.prompt([
+				{
+					name: "role",
+					type: "list",
+					message: "Which role would you like to remove?",
+					choices: rolesList,
+				},
+			])
+			.then((answer) => {
+				connection.query(
+					`DELETE FROM roles WHERE  id = ${answer.role.id}`,
+					(err) => {
+						if (err) throw err;
+						console.log("Successfully removed employee role!");
+						runSearch();
+					}
+				);
+			});
 	});
 };
 
 // Remove department (Extra)
 const removeDepartment = () => {
-	const query = "";
-	query += "";
-	connection.query(query, (err, res) => {
+	connection.query("SELECT * FROM department", (err, department) => {
 		if (err) throw err;
-		console.log("Successfully removed department!");
-		runSearch();
+
+		const departmentList = department.map(({ id, name }) => {
+			return {
+				name: name,
+				value: {
+					id,
+					name,
+				},
+			};
+		});
+
+		inquirer
+			.prompt([
+				{
+					name: "department",
+					type: "list",
+					message: "Which department would you like to remove?",
+					choices: departmentList,
+				},
+			])
+			.then((answer) => {
+				connection.query(
+					`DELETE FROM department WHERE id = ${answer.department.id}`,
+					(err) => {
+						if (err) throw err;
+						console.log("Successfully removed department!");
+						runSearch();
+					}
+				);
+			});
 	});
 };
 
@@ -459,11 +537,12 @@ const exitApp = () => connection.end();
 
 const operations = {
 	// Search Data
-	"Search For An Employee": employeeSearch,
-	"Search For Department": departmentSearch,
+	"Search For A Specific Employee": employeeSearch,
+	"Search For Specific Department Details": departmentSearch,
 
 	// View Data
 	"View All Employees": viewAllEmployees,
+    "View All Departments": viewAllDepartments,
 	"View All Employees By Department": viewEmployeesByDepartment,
 	"View All Employees By Manager": viewEmployeesByManager,
 	"View Total Utilized Budget Of A Department": departmentBudgetView,
@@ -479,8 +558,8 @@ const operations = {
 
 	// // Delete Data
 	"Remove Employee": removeEmployee,
-	// "Remove Role": removeRole,
-	// "Remove Department": removeDepartment,
+	"Remove Role": removeRole,
+	"Remove Department": removeDepartment,
 
 	// Exit
 	Finish: exitApp,
