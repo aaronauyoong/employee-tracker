@@ -1,6 +1,3 @@
--- This is a file to pre-populate your database. This will make development of individual features much easier.
--- dummy data
-
 INSERT INTO department (id, name)
 VALUES ("1", "I.T."), ("2", "Marketing"), ("3", "Human Resources");
 
