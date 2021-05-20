@@ -2,12 +2,11 @@ const inquirer = require("inquirer");
 const mysql = require("mysql");
 const cTable = require("console.table");
 // Modularised functions
-// const { employeeSearch, departmentSearch } = require('./operations/search');
+// const { employeeSearch, viewAllEmployees } = require("./operations/search");
 
 const connection = mysql.createConnection({
 	host: "localhost",
 	port: 3306,
-	// Your username
 	user: "root",
 	// Be sure to update with your own MySQL password!
 	password: "rootPassword",
@@ -43,17 +42,9 @@ const employeeSearch = () => {
 const departmentSearch = () => {
 	connection.query("SELECT name FROM department", (err, department) => {
 		if (err) throw err;
-
 		const departmentList = department.map(({ id, name }) => {
-			return {
-				name: name,
-				value: {
-					id,
-					name,
-				},
-			};
+			return { name: name, value: {id, name} };
 		});
-
 		inquirer
 			.prompt([
 				{
@@ -98,9 +89,7 @@ const viewAllDepartments = () => {
 };
 
 const viewEmployeesByDepartment = () => {
-	connection.query(
-		"SELECT * FROM department ORDER BY id ASC",
-		(err, departments) => {
+	connection.query("SELECT * FROM department ORDER BY id ASC", (err, departments) => {
 			if (err) throw err;
 			inquirer
 				.prompt({
@@ -133,15 +122,7 @@ const viewEmployeesByManager = () => {
 		(err, managers) => {
 			const managerChoices = managers.map(
 				({ id, first_name, last_name, role_id }) => {
-					return {
-						name: first_name + " " + last_name,
-						value: {
-							id,
-							first_name,
-							last_name,
-							role_id,
-						},
-					};
+					return { name: first_name + " " + last_name, value: {id, first_name, last_name, role_id} };
 				}
 			);
 			if (err) throw err;
@@ -149,8 +130,7 @@ const viewEmployeesByManager = () => {
 				.prompt({
 					name: "manager",
 					type: "list",
-					message:
-						"Please select a manager from the list below, to see employees reporting to them:",
+					message: "Please select a manager from the list below, to see employees reporting to them:",
 					choices: managerChoices,
 				})
 				.then((answers) => {
@@ -175,15 +155,8 @@ WHERE employee.manager_id = ${managerList};
 const departmentBudgetView = () => {
 	return connection.query(`SELECT id, name FROM department`, (err, res) => {
 		if (err) throw err;
-
 		const deptChoices = res.map(({ id, name }) => {
-			return {
-				name: name,
-				value: {
-					id,
-					name,
-				},
-			};
+			return { name: name, value: {id, name} };
 		});
 		inquirer
 			.prompt({
@@ -241,29 +214,14 @@ const addEmployee = () => {
 							type: "list",
 							message: "Please select the new employee's manager by name:",
 							choices: manager.map(({ id, first_name, last_name }) => {
-								return {
-									name: first_name + " " + last_name,
-									value: {
-										id,
-										first_name,
-										last_name,
-									},
-								};
+								return { name: first_name + " " + last_name, value: {id, first_name, last_name} };
 							}),
 						},
 					])
 					.then((answer) => {
 						const query =
 							"INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES (?,?,?,?)";
-
-						connection.query(
-							query,
-							[
-								answer.firstName,
-								answer.lastName,
-								answer.employeeRole.id,
-								answer.employeeManager.id,
-							],
+						connection.query(query, [answer.firstName, answer.lastName, answer.employeeRole.id, answer.employeeManager.id],
 							(err) => {
 								if (err) throw err;
 								console.log("// ----- Successfully added new employee! -----  //");
@@ -288,7 +246,6 @@ const addDepartment = () => {
 		])
 		.then((answer) => {
 			const query = "INSERT INTO department (name) VALUES (?)";
-
 			connection.query(query, [answer.departmentName], (err) => {
 				if (err) throw err;
 				console.log("// ----- Successfully added new department! -----  //");
@@ -300,7 +257,7 @@ const addDepartment = () => {
 const addRole = () => {
 	connection.query("SELECT * FROM department", (err, department) => {
 		if (err) throw err;
-		connection.query("SELECT * FROM roles", (err, roles) => {
+		connection.query("SELECT * FROM roles", (err) => {
 			if (err) throw err;
 			inquirer
 				.prompt([
@@ -321,23 +278,14 @@ const addRole = () => {
 						message:
 							"Please select the department the new employee role will work under:",
 						choices: department.map(({ id, name }) => {
-							return {
-								name: name,
-								value: {
-									id,
-									name,
-								},
-							};
+							return { name: name, value: {id, name} };
 						}),
 					},
 				])
 				.then((answer) => {
 					const query =
 						"INSERT INTO roles (title, salary, department_id) VALUES (?,?,?)";
-					connection.query(
-						query,
-						[answer.title, answer.salary, answer.department.id],
-						(err) => {
+					connection.query(query, [answer.title, answer.salary, answer.department.id], (err) => {
 							if (err) throw err;
 							console.log("// ----- Successfully added a new employee role! -----  //");
 							runSearch();
@@ -353,11 +301,9 @@ const updateEmployeeRole = () => {
     connection.query("SELECT * FROM employee", (err, employee) => {
         if(err) throw err;
         console.log("THIS IS A CONSOLE LOG FOR EMPLOYEE*****", employee)
-
         connection.query("SELECT * FROM roles", (err, roles) => {
             console.log("THIS IS A CONSOLE LOG FOR ROLES", roles)
             if(err) throw err;
-
             inquirer.prompt([
                 {
                     name: "employee",
@@ -384,54 +330,41 @@ const updateEmployeeRole = () => {
     })
 };
 
-// Updating Employee Manager (Extra)
-// Logic - TBC, need clarify
 const updateEmployeeManager = () => {
-	const managerList = [];
-
-	inquirer.prompt([
-		{
-			name: "updateManager",
-			type: "list",
-			message: "Which employee's manager would you like to update?",
-			choices: [],
-		},
-		{
-			name: "setManager",
-			type: "list",
-			message:
-				"Which employee do you want to set as manager for the selected employee?",
-			choices: [],
-		},
-	]);
-
-	const query = "";
-	query += "";
-	connection.query(query, (err, res) => {
-		if (err) throw err;
-		console.table(res);
-		console.log("// ----- Successfully updated employee manager! ----- //");
-		runSearch();
-	});
+	connection.query("SELECT * FROM employee", (err, employee) => {
+        if (err) throw err;
+        connection.query("SELECT * FROM employee WHERE manager_id IS NULL", (err, manager) => {
+            if (err) throw err;
+            inquirer.prompt([
+                {
+                    name:"employee",
+                    type:"list",
+                    message:"Please select the employee you would like to update.",
+                    choices: employee.map(emp => ({ name: emp.first_name + " " + emp.last_name, value: emp.id }))
+                },
+                {
+                    name: "manager",
+                    type: "list",
+                    message: "Please select the chosen employee's new manager.",
+                    choices: manager.map(man => ({ name: man.first_name + " " + man.last_name, value: man.id }))
+                }
+            ]).then((answer) => {
+                connection.query("UPDATE employee SET manager_id = ? WHERE id = ?", [answer.manager, answer.employee], (err, res) => {
+                    if (err) throw err;
+                    console.log("// ----- Successfully updated the employee's manager! ----- //");
+                    runSearch();
+                })
+            })
+        })
+    })
 };
 
 const removeEmployee = () => {
-	connection.query(
-		"SELECT first_name, last_name, id FROM employee",
-		(err, employee) => {
+	connection.query("SELECT first_name, last_name, id FROM employee", (err, employee) => {
 			if (err) throw err;
-
 			const employeeList = employee.map(({ id, first_name, last_name }) => {
-				return {
-					name: first_name + " " + last_name,
-					value: {
-						id,
-						first_name,
-						last_name,
-					},
-				};
+				return { name: first_name + " " + last_name, value: {id, first_name, last_name} };
 			});
-
 			inquirer
 				.prompt([
 					{
@@ -442,9 +375,7 @@ const removeEmployee = () => {
 					},
 				])
 				.then((answer) => {
-					connection.query(
-						`DELETE FROM employee WHERE id = ${answer.employee.id}`,
-						(err) => {
+					connection.query(`DELETE FROM employee WHERE id = ${answer.employee.id}`, (err) => {
 							if (err) throw err;
 							console.log("// ----- Successfully removed employee! -----  //");
 							runSearch();
@@ -458,19 +389,9 @@ const removeEmployee = () => {
 const removeRole = () => {
 	connection.query("SELECT * FROM roles", (err, roles) => {
 		if (err) throw err;
-
 		const rolesList = roles.map(({ id, title, salary, department_id }) => {
-			return {
-				name: title,
-				value: {
-					id,
-					title,
-					salary,
-					department_id,
-				},
-			};
+			return { name: title, value: {id, title, salary, department_id} };
 		});
-
 		inquirer
 			.prompt([
 				{
@@ -481,9 +402,7 @@ const removeRole = () => {
 				},
 			])
 			.then((answer) => {
-				connection.query(
-					`DELETE FROM roles WHERE  id = ${answer.role.id}`,
-					(err) => {
+				connection.query(`DELETE FROM roles WHERE id = ${answer.role.id}`, (err) => {
 						if (err) throw err;
 						console.log("// ----- Successfully removed employee role! -----  //");
 						runSearch();
@@ -496,17 +415,9 @@ const removeRole = () => {
 const removeDepartment = () => {
 	connection.query("SELECT * FROM department", (err, department) => {
 		if (err) throw err;
-
 		const departmentList = department.map(({ id, name }) => {
-			return {
-				name: name,
-				value: {
-					id,
-					name,
-				},
-			};
+			return { name: name, value: {id, name} };
 		});
-
 		inquirer
 			.prompt([
 				{
@@ -517,9 +428,7 @@ const removeDepartment = () => {
 				},
 			])
 			.then((answer) => {
-				connection.query(
-					`DELETE FROM department WHERE id = ${answer.department.id}`,
-					(err) => {
+				connection.query(`DELETE FROM department WHERE id = ${answer.department.id}`, (err) => {
 						if (err) throw err;
 						console.log("// ----- Successfully removed department! -----  //");
 						runSearch();
@@ -532,43 +441,30 @@ const removeDepartment = () => {
 const exitApp = () => connection.end();
 
 const operations = {
-	// Search Data
 	"Search For A Specific Employee": employeeSearch,
 	"Search For Specific Department Details": departmentSearch,
-
-	// View Data
 	"View All Employees": viewAllEmployees,
 	"View All Departments": viewAllDepartments,
 	"View All Employees By Department": viewEmployeesByDepartment,
 	"View All Employees By Manager": viewEmployeesByManager,
 	"View Total Utilized Budget Of A Department": departmentBudgetView,
-
-	// // Add Data
 	"Add Employee": addEmployee,
 	"Add Department": addDepartment,
 	"Add Role": addRole,
-
-	// // Update Data
 	"Update Employee Role": updateEmployeeRole,
-	// "Update Employee Manager": updateEmployeeManager,
-
-	// // Delete Data
+	"Update Employee Manager": updateEmployeeManager,
 	"Remove Employee": removeEmployee,
 	"Remove Role": removeRole,
 	"Remove Department": removeDepartment,
-
-	// Exit
-	Finish: exitApp,
+	"Finish": exitApp,
 };
 
-// First function upon app initialisation
 const runSearch = () => {
 	inquirer
 		.prompt({
 			name: "action",
 			type: "list",
-			message:
-				"Welcome to the Employee Tracker application. What would you like to do today?",
+			message: "Welcome to the Employee Tracker application. What would you like to do today?",
 			choices: Object.keys(operations),
 		})
 		.then((answer) => {
