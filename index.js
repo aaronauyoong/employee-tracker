@@ -165,10 +165,10 @@ const departmentBudgetView = () => {
 // Adding new employee (MinReq)
 const addEmployee = () => {
 	connection.query("SELECT * FROM roles", (err, roles) => {
-        console.log(roles);
+        
 		if (err) throw err;
 		connection.query(
-			"SELECT * FROM employee WHERE manager_id is null", (err) => {
+			"SELECT * FROM employee WHERE manager_id IS null", (err, manager) => {
 				if (err) throw err;
 
 				inquirer
@@ -187,13 +187,27 @@ const addEmployee = () => {
 							name: "employeeRole",
 							type: "list",
 							message: "Please select the new employee's role:",
-							choices: "", // TBD how to select new employee's role -- map?
+							choices: roles.map(({ id, title }) => {
+                                return {
+                                    name: title,
+                                    value: {
+                                        id, title
+                                    }
+                                }
+                            }), 
 						},
 						{
 							name: "employeeManager",
 							type: "list",
 							message: "Please select the new employee's manager by name:",
-							choices: "", // TBD how to select new employee's manager -- map?
+							choices: manager.map(({ id, first_name, last_name }) => {
+                                return {
+                                    name: first_name + " " + last_name,
+                                    value: {
+                                        id, first_name, last_name
+                                    }
+                                }
+                            }), 
 						},
 					])
 					.then((answer) => {
@@ -205,8 +219,8 @@ const addEmployee = () => {
 							[
 								answer.firstName,
 								answer.lastName,
-								answer.employeeRole,
-								answer.employeeManager,
+								answer.employeeRole.id,
+								answer.employeeManager.id,
 							],
 							(err) => {
 								if (err) throw err;
