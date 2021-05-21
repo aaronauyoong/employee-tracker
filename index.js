@@ -330,9 +330,7 @@ const addRole = () => {
 const updateEmployeeRole = () => {
 	connection.query("SELECT * FROM employee", (err, employee) => {
 		if (err) throw err;
-		console.log("THIS IS A CONSOLE LOG FOR EMPLOYEE*****", employee);
 		connection.query("SELECT * FROM roles", (err, roles) => {
-			console.log("THIS IS A CONSOLE LOG FOR ROLES", roles);
 			if (err) throw err;
 			inquirer
 				.prompt([
