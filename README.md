@@ -2,7 +2,9 @@
 
 # Employee Tracker Application
 Project Owner: Aaron Au Yoong
-
+<br>
+A video demo of the application can be found [here](https://www.youtube.com/watch?v=vUprIIN-5Gs&ab_channel=AaronAuYoong).
+<br>
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://choosealicense.com/licenses/mit/)
 
 ## Table of Contents
@@ -97,7 +99,7 @@ Congratulations! You have successfully installed the employee tracker applicatio
 
 ## Usage
 
-[Video Demo](https://youtu.be/ou3FEORbngE)
+[Video Demo](https://www.youtube.com/watch?v=vUprIIN-5Gs&ab_channel=AaronAuYoong)
 
 1. Ensure you have all the files from `employee-tracker` downloaded into your system.
 
@@ -142,6 +144,12 @@ Console.table NPM Package was used: [console.table](https://www.npmjs.com/packag
 
 Banner for README retrieved from [PingCAP](https://pingcap.com/blog/tidb-lite-go-sqlmock-alternative-for-easily-unit-testing-golang-database-related-code).
 
+Music backtrack used in the application's video demo: `Above the Clouds` by `amies`. 
+<br>
+
+Artist and song credits are as follows:
+- [Amies' SoundCloud Profile](https://soundcloud.com/officialamies).
+- [Above The Clouds YouTube Sample](https://www.youtube.com/watch?v=uEJuTsgqgA0&ab_channel=CloudhopMusicCloudhopMusic).
 
 ## Tests
 Sample data from `seed.sql` was used for testing. Some screenshots of the tests are below. 
@@ -158,7 +166,7 @@ Sample data from `seed.sql` was used for testing. Some screenshots of the tests 
 <img src="./images/employeesByDepTest2.png" width="100%">
 <br>
 
-Elaborate testing is demonstrated in the video demo. 
+Elaborate testing is demonstrated in the [video demo](https://www.youtube.com/watch?v=vUprIIN-5Gs&ab_channel=AaronAuYoong). 
 
 ## Questions
 Any questions? Feel free to contact me via my GitHub profile: [Aaron Au Yoong's GitHub Profile](https://github.com/aaronauyoong)
