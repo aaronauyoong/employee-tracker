@@ -3,4 +3,4 @@ node_modules
 .DS_Store
 temp.js
 map.js
-operations
+operations-js
