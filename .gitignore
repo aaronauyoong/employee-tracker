@@ -1,5 +1,6 @@
-node_modules
 .gitignore
+node_modules
 .DS_Store
 temp.js
 map.js
+operations

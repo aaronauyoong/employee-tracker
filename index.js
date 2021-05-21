@@ -1,8 +1,6 @@
 const inquirer = require("inquirer");
 const mysql = require("mysql");
 const cTable = require("console.table");
-// Modularised functions
-// const { employeeSearch, viewAllEmployees } = require("./operations/search");
 
 const connection = mysql.createConnection({
 	host: "localhost",
@@ -73,6 +71,16 @@ const viewAllEmployees = () => {
 	const query =
 		"SELECT employee.id AS ID, first_name AS 'First Name', last_name AS 'Last Name', roles.title AS 'Role', department.name AS 'Department', employee.manager_id AS 'Manager ID' FROM employee LEFT JOIN (roles LEFT JOIN department ON department.id = roles.department_id) ON employee.role_id = roles.id ORDER BY employee.id";
 	connection.query(query, (err, res) => {
+		if (err) throw err;
+		console.table(res);
+		runSearch();
+	});
+};
+
+const viewAllRoles = () => {
+	const query =
+    "SELECT roles.id AS ID, title AS 'Role Title', salary AS 'Salary Per Annum ($)', department.name AS Department FROM roles INNER JOIN department ON roles.department_id = department.id;"
+    connection.query(query, (err, res) => {
 		if (err) throw err;
 		console.table(res);
 		runSearch();
@@ -166,7 +174,7 @@ const departmentBudgetView = () => {
 				choices: deptChoices,
 			})
 			.then((answers) => {
-				const query = `SELECT SUM(roles.salary) total_budget FROM roles WHERE department_id = ?`;
+				const query = `SELECT SUM(roles.salary) 'Total Annual Budget ($)' FROM roles WHERE department_id = ?`;
 				connection.query(query, [answers.department.id], (err, res) => {
 					if (err) throw err;
 					console.table(res);
@@ -441,14 +449,15 @@ const removeDepartment = () => {
 const exitApp = () => connection.end();
 
 const operations = {
-	"Search For A Specific Employee": employeeSearch,
-	"Search For Specific Department Details": departmentSearch,
 	"View All Employees": viewAllEmployees,
+    "View All Roles": viewAllRoles,
 	"View All Departments": viewAllDepartments,
 	"View All Employees By Department": viewEmployeesByDepartment,
 	"View All Employees By Manager": viewEmployeesByManager,
 	"View Total Utilized Budget Of A Department": departmentBudgetView,
-	"Add Employee": addEmployee,
+	"Search For A Specific Employee": employeeSearch,
+	"Search For Specific Department Details": departmentSearch,
+    "Add Employee": addEmployee,
 	"Add Department": addDepartment,
 	"Add Role": addRole,
 	"Update Employee Role": updateEmployeeRole,
