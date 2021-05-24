@@ -1,17 +1,11 @@
 const inquirer = require("inquirer");
-const mysql = require("mysql");
+const mysql = require("mysql2");
 const cTable = require("console.table");
+const db = require('./db/connection');
 
-const connection = mysql.createConnection({
-	host: "localhost",
-	port: 3306,
-	user: "root",
-	// Be sure to update with your own MySQL password!
-	password: "rootPassword",
-	database: "employee_DB",
-});
 
-connection.connect((err) => {
+
+db.connection.connect((err) => {
 	if (err) throw err;
 	runSearch();
 });
@@ -29,11 +23,12 @@ const employeeSearch = () => {
 		.then((answer) => {
 			const query =
 				"SELECT employee.id AS ID, first_name AS 'First Name', last_name AS 'Last Name', roles.title AS 'Role', department.name AS 'Department', employee.manager_id AS 'Manager ID' FROM employee LEFT JOIN (roles LEFT JOIN department ON department.id = roles.department_id) ON employee.role_id = roles.id WHERE employee.first_name = ?";
-			connection.query(query, [answer.employeeSearch], (err, res) => {
-				if (err) throw err;
-				console.table(res);
-				runSearch();
-			});
+			db.query(query, [answer.employeeSearch])
+				.then(([rows, fields]) => {
+					console.table(rows);
+					runSearch();
+
+				});
 		});
 };
 
