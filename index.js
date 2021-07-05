@@ -2,8 +2,7 @@ const inquirer = require("inquirer");
 const mysql = require("mysql2");
 const cTable = require("console.table");
 const db = require('./db/connection');
-
-
+const { viewAllEmployees } = require('./operations/employee');
 
 db.connection.connect((err) => {
 	if (err) throw err;
@@ -62,15 +61,6 @@ WHERE department.name = "${answer.department.name}"`;
 	});
 };
 
-const viewAllEmployees = () => {
-	const query =
-		"SELECT employee.id AS ID, first_name AS 'First Name', last_name AS 'Last Name', roles.title AS 'Role', department.name AS 'Department', employee.manager_id AS 'Manager ID' FROM employee LEFT JOIN (roles LEFT JOIN department ON department.id = roles.department_id) ON employee.role_id = roles.id ORDER BY employee.id";
-	connection.query(query, (err, res) => {
-		if (err) throw err;
-		console.table(res);
-		runSearch();
-	});
-};
 
 const viewAllRoles = () => {
 	const query =
@@ -477,12 +467,13 @@ const removeRole = () => {
 };
 
 const removeDepartment = () => {
-	connection.query("SELECT * FROM department", (err, department) => {
-		if (err) throw err;
+	db.query("SELECT * FROM department")
+	.then(([department]) => {
+		
 		const departmentList = department.map(({ id, name }) => {
 			return { name: name, value: { id, name } };
 		});
-		inquirer
+		return inquirer
 			.prompt([
 				{
 					name: "department",
@@ -491,23 +482,34 @@ const removeDepartment = () => {
 					choices: departmentList,
 				},
 			])
-			.then((answer) => {
-				connection.query(
-					`DELETE FROM department WHERE id = ${answer.department.id}`,
-					(err) => {
-						if (err) throw err;
-						console.log("// ----- Successfully removed department! -----  //");
-						runSearch();
-					}
-				);
-			});
-	});
+		})
+		.then((answer) => {
+			connection.query(
+				`DELETE FROM department WHERE id = ${answer.department.id}`,
+				(err) => {
+					if (err) throw err;
+					console.log("// ----- Successfully removed department! -----  //");
+					
+				}
+			);
+		});
+	
+	
 };
 
-const exitApp = () => connection.end();
+const exitApp = () => db.connection.end();
+
+
+function printResults(queryOperation) {
+	return async function () {
+		const [result, fields] = await queryOperation();
+		console.table(result);
+		return result;
+	}
+}
 
 const operations = {
-	"View All Employees": viewAllEmployees,
+	"View All Employees": printResults(viewAllEmployees),
 	"View All Roles": viewAllRoles,
 	"View All Departments": viewAllDepartments,
 	"View All Employees By Department": viewEmployeesByDepartment,
@@ -535,7 +537,11 @@ const runSearch = () => {
 				"Welcome to the Employee Tracker application. What would you like to do today?",
 			choices: Object.keys(operations),
 		})
-		.then((answer) => {
-			operations[answer.action]();
+		.then(async (answer) => {
+			await operations[answer.action]();
+			if(answer.action === 'Finish'){
+				return;
+			}
+			runSearch();
 		});
 };
